@@ -1491,10 +1491,13 @@ function rep(){
 const REPCSS=`body{font-family:Lexend,Segoe UI,system-ui,sans-serif;color:#2b2118;max-width:860px;margin:24px auto;padding:0 16px;line-height:1.5}h1{font-family:"Pixelify Sans",monospace;color:#2f6b1f;margin:0}h2{font-size:1.1rem;margin:22px 0 6px;border-bottom:3px solid #2b2118;padding-bottom:3px}h3{font-size:1rem;margin:14px 0 6px}.sub{color:#6b5a48;margin:4px 0 12px}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{border:1px solid #8a7a66;padding:5px 8px;text-align:left;vertical-align:top}th{background:#eef6e4;width:32%}.ph{display:flex;flex-wrap:wrap;gap:8px}.ph figure{margin:0;width:200px}.ph img{width:200px;border:1px solid #2b2118}.ph figcaption{font-size:.8rem}.draw{width:100%;border:2px solid #2b2118;margin-top:6px}@media print{h2{break-after:avoid}table,figure,img{break-inside:avoid}}`;
 function downloadReport(){
   const html=`<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laporan Eco-Explorer - ${esc(val("nama"))}</title><style>${REPCSS}</style></head><body>${rep()}</body></html>`;
-  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
-  a.download=`Laporan-EcoExplorer-${(val("kelompok")||"kelompok").replace(/[^\w-]+/g,"_")}-${(val("nama")||"nama").replace(/[^\w-]+/g,"_")}.html`;
+  const name=`Laporan-EcoExplorer-${(val("kelompok")||"kelompok").replace(/[^\w-]+/g,"_")}-${(val("nama")||"nama").replace(/[^\w-]+/g,"_")}.html`;
+  if(DL){DL.save({filename:name,data:html}).then(()=>toast("Laporan disimpan."),err=>{if(err&&err.code==="declined") return; toast("Laporan tidak dapat disimpan di sini. Gunakan tombol Salin laporan.",true);}); return;}
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([html],{type:"text/html"})); a.download=name;
   document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1500); toast("Laporan diunduh.");
 }
+let DL=null;
+try{if(window.claude&&typeof window.claude.use==="function") window.claude.use("downloads").then(d=>{DL=d;},()=>{});}catch(e){}
 function copyReport(){
   const d=document.createElement("div"); d.innerHTML=rep(); d.querySelectorAll("img,figure").forEach(x=>x.remove());
   d.querySelectorAll("tr").forEach(tr=>{tr.append(document.createTextNode("\n")); tr.querySelectorAll("th,td").forEach(c=>c.append(document.createTextNode(" | ")));});

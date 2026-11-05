@@ -1447,11 +1447,11 @@ function renderFinish(){
   let d=0; for(let n=1;n<=15;n++) if(isDone(n)) d++;
   $("#finishPanel").innerHTML=`<div class="box done-panel"><img class="trophy" src="${sprite("piala")}" alt=""><h3>Petualangan selesai, ${esc(val("nama")||"Peneliti")}!</h3><p>Kamu menyelesaikan <b>${d} dari 15</b> halaman. Unduh laporan, lalu kirimkan kepada guru beserta produk kreatif kelompokmu.</p>
   <div class="sgrid">${scoreList().map(s=>`<div><span class="small muted">${s[0]}</span><b>${s[1]}</b></div>`).join("")}</div>
-  <div class="btns" style="justify-content:center"><button class="btn" type="button" id="dlReport">⬇ Unduh laporan (.html)</button><button class="btn alt" type="button" id="printReport">🖨 Cetak / simpan PDF</button></div>
-  <p class="small muted">Laporan memuat semua jawaban, data, gambar, dan foto. File dapat dibuka di peramban mana pun.</p>
+  <div class="btns" style="justify-content:center"><button class="btn" type="button" id="dlReport">⬇ Unduh laporan (.html)</button><button class="btn alt" type="button" id="printReport">🖨 Cetak / simpan PDF</button><button class="btn alt" type="button" id="copyReport">⧉ Salin laporan (teks)</button></div>
+  <p class="small muted">Laporan .html memuat semua jawaban, data, gambar, dan foto. Jika tombol unduh atau cetak tidak bekerja di perangkatmu, tekan <b>Salin laporan</b>, tempel di Google Classroom atau WhatsApp, lalu kirim foto dan gambar secara terpisah.</p><p class="small" id="copyStat" aria-live="polite"></p>
   <div class="btns" style="justify-content:center"><button class="btn sm alt" type="button" id="resetAll">Hapus semua jawaban di perangkat ini</button></div>
   <div class="fb warn" id="resetConfirm" hidden>Semua jawaban, gambar, dan foto akan dihapus permanen dari perangkat ini. <button class="btn sm" type="button" id="resetYes" style="margin-left:6px">Ya, hapus</button> <button class="btn sm alt" type="button" id="resetNo">Batal</button></div></div>`;
-  $("#dlReport").onclick=downloadReport; $("#printReport").onclick=printReport;
+  $("#dlReport").onclick=downloadReport; $("#printReport").onclick=printReport; $("#copyReport").onclick=copyReport;
   $("#resetAll").onclick=()=>$("#resetConfirm").hidden=false; $("#resetNo").onclick=()=>$("#resetConfirm").hidden=true;
   $("#resetYes").onclick=()=>{try{localStorage.removeItem(KEY);}catch(e){} location.hash="#hal-1"; location.reload();};
 }
@@ -1494,6 +1494,14 @@ function downloadReport(){
   const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
   a.download=`Laporan-EcoExplorer-${(val("kelompok")||"kelompok").replace(/[^\w-]+/g,"_")}-${(val("nama")||"nama").replace(/[^\w-]+/g,"_")}.html`;
   document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1500); toast("Laporan diunduh.");
+}
+function copyReport(){
+  const d=document.createElement("div"); d.innerHTML=rep(); d.querySelectorAll("img,figure").forEach(x=>x.remove());
+  d.querySelectorAll("tr").forEach(tr=>{tr.append(document.createTextNode("\n")); tr.querySelectorAll("th,td").forEach(c=>c.append(document.createTextNode(" | ")));});
+  d.querySelectorAll("h1,h2,h3,p").forEach(h=>{h.prepend(document.createTextNode("\n")); h.append(document.createTextNode("\n"));});
+  const txt=d.textContent.replace(/ \| \n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+  const st=$("#copyStat"); const fb=()=>{const ta=document.createElement("textarea"); ta.value=txt; ta.style.minHeight="200px"; st.innerHTML=""; st.append("Salin teks di bawah ini secara manual:",ta); ta.select();};
+  try{navigator.clipboard.writeText(txt).then(()=>{st.textContent="Laporan tersalin. Tempel di tempat pengumpulan tugas.";},fb);}catch(e){fb();}
 }
 function printReport(){$("#printArea").innerHTML=`<style>${REPCSS.replace(/body\{/,"#printArea{")}</style>`+rep(); setTimeout(()=>window.print(),100);}
 

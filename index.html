@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LKPD Ekosfer Botol</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: buku catatan lapangan ekologi — satu kolom baca, bilah navigasi STEAM lengket di atas, tiap bagian diberi warna huruf STEAM-nya sendiri. */
+:root{
+  --bg:#EEF2EE; --surface:#FFFFFF; --sunk:#E3E9E4; --ink:#17221C; --muted:#56665C; --line:#CCD6CF;
+  --moss:#2E6A4E; --moss-ink:#FFFFFF;
+  --s:#2E6A4E; --t:#23678A; --e:#8B5A17; --a:#A1365A; --m:#544A9E;
+  --ok:#1F7A45; --ok-bg:#DDF1E4; --bad:#B3261E; --bad-bg:#FBE3E1; --warn:#8A6100; --warn-bg:#FBEFCF;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101612; --surface:#18201B; --sunk:#202A24; --ink:#E2EAE4; --muted:#9DAEA3; --line:#2F3C34;
+  --moss:#6DC59A; --moss-ink:#0D1A13;
+  --s:#6DC59A; --t:#6BB8E0; --e:#E0A95A; --a:#EB8AAE; --m:#A79CF0;
+  --ok:#7BD9A0; --ok-bg:#183626; --bad:#FF9C94; --bad-bg:#3D1C1A; --warn:#F0C66A; --warn-bg:#3A2E10;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#101612; --surface:#18201B; --sunk:#202A24; --ink:#E2EAE4; --muted:#9DAEA3; --line:#2F3C34;
+  --moss:#6DC59A; --moss-ink:#0D1A13;
+  --s:#6DC59A; --t:#6BB8E0; --e:#E0A95A; --a:#EB8AAE; --m:#A79CF0;
+  --ok:#7BD9A0; --ok-bg:#183626; --bad:#FF9C94; --bad-bg:#3D1C1A; --warn:#F0C66A; --warn-bg:#3A2E10;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none!important;animation:none!important} }
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,6vw,3.1rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.65rem;font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+a{color:var(--moss)}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.label{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:12px;padding-block:8px}
+.nav .brand{font-family:var(--f-display);font-weight:800;font-size:1rem;white-space:nowrap}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;gap:6px;margin-left:auto;flex-wrap:nowrap}
+.nav a.step{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;text-decoration:none;font-family:var(--f-display);font-weight:800;color:var(--c);border:1.5px solid var(--c);font-size:1rem}
+.nav a.step.done{background:var(--c);color:var(--surface)}
+.nav a.step:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.progress{height:3px;background:var(--sunk)}
+.progress i{display:block;height:100%;width:0;background:var(--moss);transition:width .3s}
+@media (max-width:520px){ .nav .brand{display:none} .nav ol{margin-left:0;width:100%;justify-content:space-between} }
+
+/* hero */
+header.hero{padding-block:44px 28px}
+.hero .kicker{display:flex;flex-wrap:wrap;gap:8px 16px;margin-bottom:14px}
+.hero p.lead{font-size:1.15rem;max-width:62ch;margin-top:14px;color:var(--muted)}
+.steam-word{display:flex;gap:4px;margin-top:22px;flex-wrap:wrap}
+.steam-word span{font-family:var(--f-display);font-weight:800;font-size:.85rem;padding:4px 10px;border-radius:999px;color:var(--c);border:1.5px solid var(--c)}
+
+main{display:grid;gap:28px;padding-bottom:64px}
+section.blk{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,4vw,32px);display:grid;gap:20px;scroll-margin-top:72px}
+section.blk > header{display:flex;gap:16px;align-items:flex-start}
+.letter{flex:none;width:56px;height:56px;border-radius:12px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:2rem;background:var(--c);color:var(--surface)}
+section.blk > header .label{color:var(--c)}
+.task{display:grid;gap:12px;padding-top:20px;border-top:1px dashed var(--line)}
+.task-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.task-h .num{font-family:var(--f-mono);font-size:.8rem;font-weight:600;color:var(--c,var(--moss))}
+.note{background:var(--sunk);border-radius:var(--r);padding:12px 14px;font-size:.95rem}
+.note b{font-family:var(--f-display)}
+.stim{border-left:4px solid var(--moss);background:var(--sunk);padding:14px 16px;border-radius:0 var(--r) var(--r) 0}
+
+/* forms */
+label.fld{display:grid;gap:4px;font-weight:700;font-size:.95rem}
+label.fld span.hint{font-weight:400;color:var(--muted);font-size:.85rem}
+input[type=text],input[type=number],textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+textarea{min-height:92px;resize:vertical;font-weight:400}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;border-color:var(--moss);box-shadow:0 0 0 3px color-mix(in srgb,var(--moss) 25%,transparent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-weight:700;cursor:pointer;border-radius:8px;padding:9px 16px;border:1.5px solid var(--moss);background:var(--moss);color:var(--moss-ink)}
+button.ghost{background:transparent;color:var(--moss)}
+button.mini{padding:4px 10px;font-size:.85rem}
+button:focus-visible{outline:3px solid var(--moss);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.fb{font-size:.95rem;padding:10px 12px;border-radius:8px}
+.fb:empty{display:none}
+.fb.ok{background:var(--ok-bg);color:var(--ok)}
+.fb.bad{background:var(--bad-bg);color:var(--bad)}
+.fb.warn{background:var(--warn-bg);color:var(--warn)}
+
+/* classify */
+.cls{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.cls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg)}
+.cls-row.ok{border-color:var(--ok)} .cls-row.bad{border-color:var(--bad)}
+.seg{position:relative;display:inline-flex;border:1.5px solid var(--line);border-radius:7px;overflow:hidden;flex:none}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:3px 10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--muted)}
+.seg input:checked + label{background:var(--c,var(--moss));color:var(--surface)}
+.seg input:focus-visible + label{outline:2px solid var(--moss);outline-offset:-2px}
+
+.pairs{display:grid;gap:8px}
+.pair{display:grid;grid-template-columns:1fr minmax(150px,220px);gap:10px;align-items:center;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg)}
+.pair.ok{border-color:var(--ok)} .pair.bad{border-color:var(--bad)}
+@media (max-width:520px){ .pair{grid-template-columns:1fr} }
+
+/* food web */
+.web{background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r);overflow-x:auto}
+.web svg{display:block;width:100%;min-width:520px;height:auto;touch-action:manipulation}
+.node{cursor:pointer}
+.node circle{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.node.prod circle{stroke:var(--s)}
+.node.sel circle{fill:var(--s);stroke:var(--s)}
+.node.sel text{fill:var(--surface)}
+.node text{fill:var(--ink);font-family:var(--f-body);font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.node:focus-visible circle{stroke:var(--t);stroke-width:4}
+.edge{stroke:var(--muted);stroke-width:2;fill:none}
+.edge.ok{stroke:var(--ok)} .edge.bad{stroke:var(--bad);stroke-dasharray:6 4}
+.trophic{fill:var(--muted);font-family:var(--f-mono);font-size:10px;letter-spacing:.08em}
+.edgelist{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--sunk);font-size:.88rem;border:1.5px solid transparent}
+.chip.ok{border-color:var(--ok)} .chip.bad{border-color:var(--bad)}
+.chip button{padding:0 8px;border-radius:999px;background:transparent;border:none;color:var(--muted);font-size:1rem;line-height:1.4}
+
+/* charts */
+.chart{background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r);padding:8px}
+.chart canvas{display:block;width:100%;height:260px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.88rem;padding:4px 6px 0}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 20px}
+.sl{display:grid;gap:2px;font-size:.92rem}
+.sl .top{display:flex;justify-content:space-between;gap:8px}
+input[type=range]{width:100%;accent-color:var(--t)}
+.check{display:flex;gap:8px;align-items:center;font-size:.95rem}
+.check input{width:18px;height:18px;accent-color:var(--moss)}
+
+/* EDP */
+.edp{display:grid;gap:10px;counter-reset:edp}
+.edp details{border:1.5px solid var(--line);border-radius:var(--r);background:var(--bg)}
+.edp summary{cursor:pointer;padding:12px 14px;font-family:var(--f-display);font-weight:700;display:flex;gap:10px;align-items:center;list-style:none}
+.edp summary::-webkit-details-marker{display:none}
+.edp summary::before{counter-increment:edp;content:counter(edp);display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--e);color:var(--surface);font-size:.85rem;flex:none}
+.edp summary .label{margin-left:auto}
+.edp .body{padding:0 14px 14px;display:grid;gap:12px}
+.mat{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+.tbl{overflow-x:auto;border:1.5px solid var(--line);border-radius:var(--r)}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunk);font-weight:600}
+tr:last-child td{border-bottom:none}
+td input{padding:5px 7px!important}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn)}
+
+/* sketch */
+.sketch{display:grid;gap:8px}
+.sketch canvas{width:100%;aspect-ratio:4/3;max-width:100%;border:1.5px solid var(--line);border-radius:var(--r);touch-action:none;cursor:crosshair;display:block;background:#FBFCFA}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sw{width:30px;height:30px;border-radius:50%;padding:0;border:2px solid var(--line)}
+.sw[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:2px}
+
+/* pyramid */
+.pyr{display:grid;gap:6px;justify-items:center;padding:12px;background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r)}
+.pyr div{height:34px;border-radius:6px;display:grid;place-items:center;color:var(--surface);font-weight:700;font-size:.85rem;min-width:110px;max-width:100%;white-space:nowrap;padding:0 8px}
+
+/* score */
+.score{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.score div{border:1.5px solid var(--line);border-radius:var(--r);padding:10px 12px;background:var(--bg)}
+.score b{display:block;font-family:var(--f-display);font-size:1.5rem}
+.likert{display:grid;gap:8px}
+.lk{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+@media (max-width:560px){ .lk{grid-template-columns:1fr} }
+pre.out{white-space:pre-wrap;background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;font-family:var(--f-mono);font-size:.8rem;max-height:340px;overflow:auto;margin:0}
+details.guru{border:1.5px dashed var(--line);border-radius:14px;background:var(--surface)}
+details.guru > summary{cursor:pointer;padding:16px 20px;font-family:var(--f-display);font-weight:700}
+details.guru .body{padding:0 20px 20px;display:grid;gap:14px}
+details.guru ul,details.guru ol{margin:0;padding-left:1.2em}
+footer{padding-block:24px 48px}
+
+@media print{
+  .nav,.btns,button{display:none!important}
+  body{background:#fff;color:#000}
+  section.blk{break-inside:avoid-page;border-color:#999}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Bagian LKPD">
+  <div class="wrap">
+    <span class="brand">Ekosfer Botol</span>
+    <ol>
+      <li><a class="step" href="#sains" style="--c:var(--s)" data-sec="sains" aria-label="Sains">S</a></li>
+      <li><a class="step" href="#teknologi" style="--c:var(--t)" data-sec="teknologi" aria-label="Teknologi">T</a></li>
+      <li><a class="step" href="#rekayasa" style="--c:var(--e)" data-sec="rekayasa" aria-label="Rekayasa">E</a></li>
+      <li><a class="step" href="#seni" style="--c:var(--a)" data-sec="seni" aria-label="Seni">A</a></li>
+      <li><a class="step" href="#matematika" style="--c:var(--m)" data-sec="matematika" aria-label="Matematika">M</a></li>
+      <li><a class="step" href="#refleksi" style="--c:var(--moss)" data-sec="refleksi" aria-label="Refleksi dan kirim">✓</a></li>
+    </ol>
+  </div>
+  <div class="progress" aria-hidden="true"><i id="progbar"></i></div>
+</nav>
+
+<div class="wrap">
+<header class="hero">
+  <div class="kicker">
+    <span class="label">Lembar Kerja Peserta Didik</span>
+    <span class="label">Biologi · Fase E · Kelas X</span>
+    <span class="label">Kurikulum Merdeka</span>
+  </div>
+  <h1>Ekosfer Botol: merancang ekosistem yang bertahan sendiri</h1>
+  <p class="lead">Kamu dan kelompokmu akan membangun ekosistem air tawar mini di dalam botol tertutup, lalu mengamatinya selama 14 hari. Dari botol itu kamu akan menjelaskan komponen ekosistem, aliran energi, interaksi, dan keseimbangan ekosistem.</p>
+  <div class="steam-word" aria-label="Integrasi STEAM">
+    <span style="--c:var(--s)">Science</span><span style="--c:var(--t)">Technology</span><span style="--c:var(--e)">Engineering</span><span style="--c:var(--a)">Art</span><span style="--c:var(--m)">Mathematics</span>
+  </div>
+</header>
+
+<main>
+
+<!-- IDENTITAS -->
+<section class="blk" id="identitas" style="--c:var(--moss)">
+  <header><div><span class="label">Mulai di sini</span><h2>Identitas & tujuan</h2></div></header>
+  <div class="grid2">
+    <label class="fld">Nama<input type="text" id="nama" data-p autocomplete="name"></label>
+    <label class="fld">Kelas<input type="text" id="kelas" data-p placeholder="X-…"></label>
+    <label class="fld">Nama kelompok<input type="text" id="kelompok" data-p></label>
+    <label class="fld">Anggota kelompok<span class="hint">Pisahkan dengan koma</span><input type="text" id="anggota" data-p></label>
+  </div>
+  <div class="grid2">
+    <div class="note">
+      <b>Tujuan pembelajaran</b>
+      <ol style="margin:.4em 0 0;padding-left:1.2em">
+        <li>Mengelompokkan komponen biotik dan abiotik serta peran produsen, konsumen, dan pengurai.</li>
+        <li>Menyusun jaring makanan dan menjelaskan arah aliran energi.</li>
+        <li>Menganalisis interaksi antarorganisme dan dinamika populasi.</li>
+        <li>Menghitung transfer energi antartingkat trofik dan memperkirakan ukuran populasi.</li>
+        <li>Merancang, menguji, dan memperbaiki model ekosistem tertutup.</li>
+      </ol>
+    </div>
+    <div class="note">
+      <b>Petunjuk</b>
+      <ul style="margin:.4em 0 0;padding-left:1.2em">
+        <li>Kerjakan bagian S → T → E → A → M secara berurutan.</li>
+        <li>Jawabanmu tersimpan otomatis di perangkat ini.</li>
+        <li>Soal bertanda <span class="tag" style="background:var(--ok-bg);color:var(--ok)">Periksa</span> langsung memberi umpan balik.</li>
+        <li>Di akhir, salin ringkasan jawaban dan kirim ke guru.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="stim">
+    <span class="label">Stimulus</span>
+    <p style="margin-top:6px">Banyak embung, situ, dan selokan di sekitar kita berubah keruh, hijau pekat, lalu berbau. Ikan dan siput mati, padahal airnya tetap ada. Ekosistem itu kehilangan keseimbangannya. Apa sebenarnya yang membuat sebuah ekosistem mampu bertahan?</p>
+    <p style="margin-top:10px"><b>Pertanyaan pemantik:</b> Bagaimana kita merancang ekosistem tertutup dalam botol yang tetap hidup minimal 14 hari tanpa diberi makan, dan apa yang bisa dipelajari dari botol itu untuk menjaga ekosistem perairan di daerah kita?</p>
+  </div>
+  <label class="fld">Dugaan awalmu<span class="hint">Tulis sebelum belajar. Kamu akan membandingkannya di akhir.</span><textarea id="dugaan" data-p placeholder="Menurutku ekosistem bisa bertahan jika …"></textarea></label>
+</section>
+
+<!-- S -->
+<section class="blk" id="sains" style="--c:var(--s)">
+  <header><div class="letter">S</div><div><span class="label">Science · Sains</span><h2>Komponen, aliran energi, dan interaksi</h2></div></header>
+
+  <div class="task">
+    <div class="task-h"><span class="num">S1</span><h3>Biotik atau abiotik?</h3></div>
+    <p class="muted">Isi botolmu nanti terdiri dari benda-benda berikut. Tentukan masing-masing termasuk komponen <b>biotik (B)</b> atau <b>abiotik (A)</b>.</p>
+    <div class="cls" id="clsList"></div>
+    <div class="btns"><button type="button" data-check="cls">Periksa</button></div>
+    <div class="fb" id="fb-cls" role="status"></div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="num">S2</span><h3>Peran organisme</h3></div>
+    <p class="muted">Rantai makanan di perairan pesisir: <b>fitoplankton → zooplankton → ikan teri → ikan tongkol</b>. Bakteri dan jamur menguraikan sisa organisme. Tentukan peran tiap organisme.</p>
+    <div class="pairs" id="roleList"></div>
+    <div class="btns"><button type="button" data-check="role">Periksa</button></div>
+    <div class="fb" id="fb-role" role="status"></div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="num">S3</span><h3>Susun jaring makanan ekosistem sawah</h3></div>
+    <p class="muted">Ketuk organisme <b>yang dimakan</b>, lalu ketuk organisme <b>pemakannya</b>. Panah akan mengarah dari yang dimakan ke pemakan, sesuai arah aliran energi. Ketuk pasangan yang sama lagi untuk menghapus panah. Buat minimal 8 panah yang benar.</p>
+    <div class="web"><svg id="web" viewBox="0 0 600 390" role="group" aria-label="Diagram jaring makanan sawah"></svg></div>
+    <p class="small muted" id="webHint" aria-live="polite">Pilih organisme yang dimakan.</p>
+    <div class="edgelist" id="edgeList"></div>
+    <div class="btns"><button type="button" data-check="web">Periksa</button><button type="button" class="ghost" id="webClear">Hapus semua panah</button></div>
+    <div class="fb" id="fb-web" role="status"></div>
+    <div class="grid2">
+      <label class="fld">Tulis satu rantai makanan dengan 4 tingkat trofik dari jaringmu<textarea id="s3_rantai" data-p placeholder="… → … → … → …"></textarea></label>
+      <label class="fld">Jika ular diburu sampai habis, apa yang terjadi pada populasi tikus dan padi? Jelaskan.<textarea id="s3_ular" data-p></textarea></label>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="num">S4</span><h3>Pola interaksi</h3></div>
+    <p class="muted">Pasangkan setiap peristiwa dengan jenis interaksinya. Setiap jenis dipakai tepat satu kali.</p>
+    <div class="pairs" id="intList"></div>
+    <div class="btns"><button type="button" data-check="int">Periksa</button></div>
+    <div class="fb" id="fb-int" role="status"></div>
+  </div>
+</section>
+
+<!-- T -->
+<section class="blk" id="teknologi" style="--c:var(--t)">
+  <header><div class="letter">T</div><div><span class="label">Technology · Teknologi</span><h2>Simulasi dinamika populasi</h2></div></header>
+  <p>Ilmuwan memakai model komputer untuk meramalkan perubahan populasi tanpa harus menunggu bertahun-tahun. Simulasi ini memakai model <b>Lotka–Volterra</b> untuk hubungan mangsa (siput air) dan pemangsa (ikan kecil). Geser pengaturnya, amati grafiknya, lalu jawab pertanyaan.</p>
+
+  <div class="task" style="--c:var(--t)">
+    <div class="task-h"><span class="num">T1</span><h3>Jalankan model</h3></div>
+    <div class="sliders">
+      <div class="sl"><div class="top"><label for="pa">Laju kelahiran mangsa</label><span class="mono" id="pa_v"></span></div><input type="range" id="pa" data-p min="0.2" max="1.2" step="0.05" value="0.6"></div>
+      <div class="sl"><div class="top"><label for="pb">Laju pemangsaan</label><span class="mono" id="pb_v"></span></div><input type="range" id="pb" data-p min="0.01" max="0.05" step="0.0025" value="0.025"></div>
+      <div class="sl"><div class="top"><label for="pc">Laju kematian pemangsa</label><span class="mono" id="pc_v"></span></div><input type="range" id="pc" data-p min="0.2" max="1" step="0.05" value="0.5"></div>
+      <div class="sl"><div class="top"><label for="pe">Efisiensi mengubah mangsa jadi keturunan</label><span class="mono" id="pe_v"></span></div><input type="range" id="pe" data-p min="0.1" max="0.8" step="0.05" value="0.4"></div>
+    </div>
+    <div class="btns" style="gap:16px">
+      <label class="check"><input type="checkbox" id="pk" data-p> Batasi daya dukung lingkungan (K = 150 siput)</label>
+      <label class="check"><input type="checkbox" id="ph" data-p> Hari ke-20: 80% ikan diambil</label>
+      <button type="button" class="ghost mini" id="simReset">Kembalikan ke awal</button>
+    </div>
+    <div class="chart">
+      <canvas id="simChart" aria-label="Grafik populasi siput dan ikan terhadap waktu" role="img"></canvas>
+      <div class="legend"><span><i style="background:var(--s)"></i>Siput (mangsa)</span><span><i style="background:var(--a)"></i>Ikan (pemangsa)</span><span class="muted mono small" id="simStat"></span></div>
+    </div>
+    <div class="grid2">
+      <label class="fld">Puncak populasi ikan selalu terjadi sesudah puncak populasi siput. Mengapa?<textarea id="t1_q1" data-p></textarea></label>
+      <label class="fld">Aktifkan daya dukung lingkungan. Apa yang berubah pada pola grafik, dan apa artinya bagi kestabilan ekosistem?<textarea id="t1_q2" data-p></textarea></label>
+      <label class="fld">Aktifkan pengambilan ikan di hari ke-20. Hubungkan hasilnya dengan penangkapan ikan berlebihan di perairan nyata.<textarea id="t1_q3" data-p></textarea></label>
+      <label class="fld">Sebutkan satu keterbatasan model ini dibandingkan ekosistem sungguhan.<textarea id="t1_q4" data-p></textarea></label>
+    </div>
+  </div>
+
+  <div class="task" style="--c:var(--t)">
+    <div class="task-h"><span class="num">T2</span><h3>Alat ukur untuk memantau ekosfer</h3></div>
+    <p class="muted">Pilih alat yang kelompokmu gunakan untuk memantau botol selama 14 hari. Ponsel bisa menjadi alat ukur, misalnya aplikasi pengukur cahaya (lux meter) atau kamera untuk memotret perubahan warna air setiap hari.</p>
+    <div class="mat">
+      <label class="check"><input type="checkbox" id="t2_termo" data-p> Termometer</label>
+      <label class="check"><input type="checkbox" id="t2_lux" data-p> Aplikasi lux meter</label>
+      <label class="check"><input type="checkbox" id="t2_kamera" data-p> Kamera ponsel (foto harian)</label>
+      <label class="check"><input type="checkbox" id="t2_ph" data-p> Kertas indikator pH</label>
+      <label class="check"><input type="checkbox" id="t2_sheet" data-p> Spreadsheet untuk data</label>
+      <label class="check"><input type="checkbox" id="t2_timer" data-p> Pengingat/alarm pengamatan</label>
+    </div>
+    <label class="fld">Jelaskan cara kelompokmu memakai alat tersebut agar datanya bisa dibandingkan dari hari ke hari<span class="hint">Contoh: waktu pengukuran yang sama, posisi botol yang sama</span><textarea id="t2_cara" data-p></textarea></label>
+  </div>
+</section>
+
+<!-- E -->
+<section class="blk" id="rekayasa" style="--c:var(--e)">
+  <header><div class="letter">E</div><div><span class="label">Engineering · Rekayasa</span><h2>Membangun ekosfer botol</h2></div></header>
+  <p>Ikuti siklus <b>proses desain rekayasa</b>. Tidak ada desain yang langsung sempurna. Desain yang baik lahir dari pengujian dan perbaikan.</p>
+  <div class="note"><b>Kriteria keberhasilan:</b> botol tertutup rapat selama ≥ 14 hari, tumbuhan tetap hijau, hewan tetap hidup, air tidak berbau busuk. <b>Batasan:</b> botol bening maksimal 1,5 L, tanpa pompa udara, tanpa diberi makan setelah ditutup.</div>
+  <div class="edp">
+    <details open>
+      <summary>Tanya: rumuskan masalah<span class="label">Ask</span></summary>
+      <div class="body">
+        <label class="fld">Apa yang dibutuhkan agar semua organisme dalam botol tertutup tetap hidup?<span class="hint">Pikirkan oksigen, karbon dioksida, energi, makanan, dan sampah</span><textarea id="e_tanya" data-p></textarea></label>
+      </div>
+    </details>
+    <details>
+      <summary>Bayangkan: kumpulkan ide<span class="label">Imagine</span></summary>
+      <div class="body">
+        <p class="muted small">Centang bahan yang akan kalian pakai.</p>
+        <div class="mat">
+          <label class="check"><input type="checkbox" id="m_botol" data-p> Botol/toples bening bertutup</label>
+          <label class="check"><input type="checkbox" id="m_air" data-p> Air kolam/sumur (bukan air keran berklorin)</label>
+          <label class="check"><input type="checkbox" id="m_pasir" data-p> Pasir/kerikil</label>
+          <label class="check"><input type="checkbox" id="m_lumpur" data-p> Sedikit lumpur dasar kolam</label>
+          <label class="check"><input type="checkbox" id="m_hydrilla" data-p> Hydrilla/tumbuhan air</label>
+          <label class="check"><input type="checkbox" id="m_siput" data-p> Siput air kecil</label>
+          <label class="check"><input type="checkbox" id="m_ikan" data-p> Ikan kecil (opsional)</label>
+          <label class="check"><input type="checkbox" id="m_daun" data-p> Daun kering</label>
+        </div>
+        <label class="fld">Ide desain yang dipertimbangkan kelompok<span class="hint">Tulis minimal dua alternatif dan alasan memilih salah satunya</span><textarea id="e_ide" data-p></textarea></label>
+      </div>
+    </details>
+    <details>
+      <summary>Rencanakan: tentukan komposisi<span class="label">Plan</span></summary>
+      <div class="body">
+        <div class="grid3">
+          <label class="fld">Volume botol (mL)<input type="number" id="e_vol" data-p min="0" inputmode="numeric"></label>
+          <label class="fld">Jumlah batang tumbuhan<input type="number" id="e_tumb" data-p min="0" inputmode="numeric"></label>
+          <label class="fld">Jumlah hewan<input type="number" id="e_hewan" data-p min="0" inputmode="numeric"></label>
+          <label class="fld">Ruang udara (% tinggi botol)<input type="number" id="e_udara" data-p min="0" max="100" inputmode="numeric"></label>
+        </div>
+        <label class="fld">Lokasi penempatan botol dan alasannya<textarea id="e_lokasi" data-p placeholder="Contoh: dekat jendela tetapi tidak terkena matahari langsung karena …"></textarea></label>
+        <div class="fb warn" id="planWarn" role="status"></div>
+      </div>
+    </details>
+    <details>
+      <summary>Buat: rakit ekosferanya<span class="label">Create</span></summary>
+      <div class="body">
+        <ol class="small" style="margin:0;padding-left:1.2em">
+          <li>Cuci botol tanpa sabun. Masukkan pasir dan sedikit lumpur setebal 2–3 cm.</li>
+          <li>Tuang air kolam perlahan sampai sekitar ¾ botol.</li>
+          <li>Tanam tumbuhan air, lalu masukkan hewan.</li>
+          <li>Diamkan terbuka 1 jam agar suhu menyesuaikan, lalu tutup rapat.</li>
+          <li>Foto botol pada hari ke-0.</li>
+        </ol>
+        <label class="fld">Catatan saat merakit (kendala, perubahan dari rencana)<textarea id="e_buat" data-p></textarea></label>
+      </div>
+    </details>
+    <details>
+      <summary>Uji: amati selama 14 hari<span class="label">Test</span></summary>
+      <div class="body">
+        <p class="small">Catat data pengamatan di bagian <a href="#matematika">M2 · Logbook</a>. Setelah 14 hari, nilai desainmu terhadap kriteria.</p>
+        <div class="mat">
+          <label class="check"><input type="checkbox" id="k_tutup" data-p> Tertutup ≥ 14 hari</label>
+          <label class="check"><input type="checkbox" id="k_hijau" data-p> Tumbuhan tetap hijau</label>
+          <label class="check"><input type="checkbox" id="k_hidup" data-p> Hewan tetap hidup</label>
+          <label class="check"><input type="checkbox" id="k_bau" data-p> Air tidak berbau busuk</label>
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>Perbaiki: tingkatkan desain<span class="label">Improve</span></summary>
+      <div class="body">
+        <label class="fld">Kriteria mana yang belum terpenuhi, dan apa penyebabnya menurut data?<textarea id="e_gagal" data-p></textarea></label>
+        <label class="fld">Perubahan desain untuk versi berikutnya<textarea id="e_perbaiki" data-p></textarea></label>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- A -->
+<section class="blk" id="seni" style="--c:var(--a)">
+  <header><div class="letter">A</div><div><span class="label">Art · Seni</span><h2>Sketsa desain dan kampanye</h2></div></header>
+  <div class="task" style="--c:var(--a)">
+    <div class="task-h"><span class="num">A1</span><h3>Gambar penampang ekosfermu</h3></div>
+    <p class="muted">Gambar botol beserta lapisan pasir, air, tumbuhan, hewan, dan ruang udara. Tambahkan panah aliran O₂, CO₂, dan energi cahaya.</p>
+    <div class="sketch">
+      <div class="swatches" id="swatches" role="group" aria-label="Warna kuas"></div>
+      <canvas id="sketch" width="1200" height="900" aria-label="Kanvas sketsa"></canvas>
+      <div class="btns"><button type="button" class="ghost mini" id="skUndo">Urungkan</button><button type="button" class="ghost mini" id="skClear">Bersihkan kanvas</button><span class="small muted" id="skStat"></span></div>
+    </div>
+  </div>
+  <div class="task" style="--c:var(--a)">
+    <div class="task-h"><span class="num">A2</span><h3>Poster kampanye ekosistem perairan</h3></div>
+    <p class="muted">Rancang poster untuk warga sekitar agar menjaga perairan setempat. Buat posternya di kertas atau aplikasi desain, lalu isi rancangannya di sini.</p>
+    <div class="grid2">
+      <label class="fld">Judul/slogan poster<input type="text" id="a_slogan" data-p></label>
+      <label class="fld">Sasaran pembaca<input type="text" id="a_sasaran" data-p placeholder="Warga RT, pedagang pasar, siswa SD …"></label>
+    </div>
+    <label class="fld">Pesan ilmiah utama yang kamu sampaikan<span class="hint">Harus berdasarkan konsep ekosistem yang sudah kamu pelajari</span><textarea id="a_pesan" data-p></textarea></label>
+    <label class="fld">Pilihan warna, gambar, dan tata letak, serta alasannya<textarea id="a_visual" data-p></textarea></label>
+  </div>
+</section>
+
+<!-- M -->
+<section class="blk" id="matematika" style="--c:var(--m)">
+  <header><div class="letter">M</div><div><span class="label">Mathematics · Matematika</span><h2>Energi, data, dan populasi dalam angka</h2></div></header>
+
+  <div class="task" style="--c:var(--m)">
+    <div class="task-h"><span class="num">M1</span><h3>Piramida energi</h3></div>
+    <p class="muted">Menurut aturan 10% (Lindeman), rata-rata hanya sekitar 10% energi berpindah ke tingkat trofik berikutnya. Produsen di sebuah sawah menyimpan <b class="mono">20.000 kJ</b>. Hitung energi di tiap tingkat.</p>
+    <div class="grid3">
+      <label class="fld">Konsumen I (kJ)<input type="number" id="m1_k1" data-p inputmode="decimal"></label>
+      <label class="fld">Konsumen II (kJ)<input type="number" id="m1_k2" data-p inputmode="decimal"></label>
+      <label class="fld">Konsumen III (kJ)<input type="number" id="m1_k3" data-p inputmode="decimal"></label>
+    </div>
+    <div class="btns"><button type="button" data-check="pyr">Periksa</button></div>
+    <div class="fb" id="fb-pyr" role="status"></div>
+    <div class="pyr" id="pyr" aria-label="Piramida energi"></div>
+    <label class="fld">Ke mana 90% energi lainnya pergi di setiap tingkat?<textarea id="m1_hilang" data-p></textarea></label>
+  </div>
+
+  <div class="task" style="--c:var(--m)">
+    <div class="task-h"><span class="num">M2</span><h3>Logbook pengamatan ekosfer</h3></div>
+    <p class="muted">Catat data setiap hari pada jam yang sama. Kejernihan air dinilai 1 (sangat keruh) sampai 5 (jernih).</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Hari</th><th>Suhu (°C)</th><th>Cahaya (lux)</th><th>Kejernihan (1–5)</th><th>Siput hidup</th><th>Catatan</th><th></th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div class="btns">
+      <button type="button" class="ghost mini" id="logAdd">Tambah hari</button>
+      <button type="button" class="ghost mini" id="logDemo" hidden>Hapus data contoh</button>
+      <label class="small" for="logVar" style="margin-left:auto">Tampilkan grafik:</label>
+      <select id="logVar" style="width:auto"><option value="suhu">Suhu</option><option value="lux">Cahaya</option><option value="jernih">Kejernihan</option><option value="siput" selected>Siput hidup</option></select>
+    </div>
+    <div class="chart"><canvas id="logChart" role="img" aria-label="Grafik data logbook"></canvas></div>
+    <label class="fld">Apa pola yang terlihat dari data? Hubungkan dengan keseimbangan ekosistem dalam botol.<textarea id="m2_pola" data-p></textarea></label>
+  </div>
+
+  <div class="task" style="--c:var(--m)">
+    <div class="task-h"><span class="num">M3</span><h3>Memperkirakan ukuran populasi</h3></div>
+    <p class="muted">Siswa menangkap <b class="mono">40</b> siput di sebuah kolam, menandainya dengan cat kuku, lalu melepaskannya. Seminggu kemudian mereka menangkap <b class="mono">50</b> siput, dan <b class="mono">8</b> di antaranya bertanda. Dengan metode tangkap–tandai–tangkap ulang (Lincoln–Petersen), perkirakan jumlah siput di kolam.</p>
+    <div class="note mono small">N = (M × C) ÷ R &nbsp;·&nbsp; M = ditandai, C = tangkapan kedua, R = bertanda di tangkapan kedua</div>
+    <div class="grid2">
+      <label class="fld">Perkiraan N (ekor)<input type="number" id="m3_n" data-p inputmode="numeric"></label>
+      <label class="fld">Luas kolam 125 m². Kepadatan populasi (ekor/m²)<input type="number" id="m3_d" data-p inputmode="decimal" step="0.01"></label>
+    </div>
+    <div class="btns"><button type="button" data-check="lp">Periksa</button></div>
+    <div class="fb" id="fb-lp" role="status"></div>
+    <label class="fld">Asumsi apa yang harus terpenuhi agar perkiraan ini akurat?<textarea id="m3_asumsi" data-p></textarea></label>
+  </div>
+</section>
+
+<!-- REFLEKSI -->
+<section class="blk" id="refleksi" style="--c:var(--moss)">
+  <header><div class="letter">✓</div><div><span class="label">Penutup</span><h2>Refleksi dan kirim jawaban</h2></div></header>
+  <div class="task">
+    <div class="task-h"><span class="num">R1</span><h3>Kesimpulan</h3></div>
+    <label class="fld">Jawab pertanyaan pemantik: apa yang membuat ekosistem bisa bertahan? Bandingkan dengan dugaan awalmu.<textarea id="r_simpul" data-p></textarea></label>
+    <label class="fld">Satu tindakan nyata yang bisa kamu lakukan untuk ekosistem perairan di sekitarmu<textarea id="r_aksi" data-p></textarea></label>
+  </div>
+  <div class="task">
+    <div class="task-h"><span class="num">R2</span><h3>Penilaian diri</h3></div>
+    <div class="likert" id="likert"></div>
+  </div>
+  <div class="task">
+    <div class="task-h"><span class="num">R3</span><h3>Skor soal otomatis</h3></div>
+    <div class="score" id="score"></div>
+    <p class="small muted">Jawaban uraian, rancangan, dan produk dinilai guru dengan rubrik.</p>
+  </div>
+  <div class="task">
+    <div class="task-h"><span class="num">R4</span><h3>Ringkasan untuk guru</h3></div>
+    <p class="muted">Salin ringkasan ini, lalu tempel di Google Classroom, WhatsApp, atau kanal yang ditentukan gurumu. Kirim juga foto sketsa dan ekosfermu.</p>
+    <div class="btns"><button type="button" id="copySum">Salin ringkasan</button><span class="small" id="copyStat" aria-live="polite"></span><button type="button" class="ghost mini" id="resetAll" style="margin-left:auto">Hapus semua jawaban</button></div>
+    <div class="fb warn" id="resetConfirm" hidden>Semua jawaban di perangkat ini akan dihapus. <button type="button" class="mini" id="resetYes">Ya, hapus</button> <button type="button" class="ghost mini" id="resetNo">Batal</button></div>
+    <pre class="out" id="summary"></pre>
+  </div>
+</section>
+
+<details class="guru">
+  <summary>Panduan guru</summary>
+  <div class="body">
+    <div>
+      <h3>Capaian Pembelajaran yang disasar</h3>
+      <p class="small" style="margin-top:6px">Biologi Fase E, elemen pemahaman dan keterampilan proses: peserta didik menciptakan solusi atas permasalahan berdasarkan isu lokal, nasional, atau global terkait komponen ekosistem, interaksi antarkomponen, dan perubahan lingkungan. Cocokkan rumusan ini dengan dokumen CP yang berlaku di sekolah Anda.</p>
+    </div>
+    <div>
+      <h3>Alur (model PjBL-STEAM, 3 pertemuan × 2 JP + pengamatan mandiri)</h3>
+      <ol class="small" style="margin-top:6px">
+        <li><b>Pertemuan 1:</b> stimulus, dugaan awal, S1–S4, T1. Kelompok menyusun rancangan (E: Tanya–Rencanakan).</li>
+        <li><b>Pertemuan 2:</b> merakit ekosfer (E: Buat), A1, M1, M3. Mulai logbook hari ke-0.</li>
+        <li><b>14 hari:</b> pengamatan mandiri dan pengisian M2.</li>
+        <li><b>Pertemuan 3:</b> E: Uji–Perbaiki, pameran ekosfer dan poster (A2), refleksi.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Kunci jawaban soal otomatis</h3>
+      <ul class="small" style="margin-top:6px">
+        <li>S1: biotik = cacing tanah, lumut, bakteri pengurai, ikan, fitoplankton, siput air; sisanya abiotik.</li>
+        <li>S2: fitoplankton produsen; zooplankton konsumen I; ikan teri konsumen II; ikan tongkol konsumen III; bakteri dan jamur pengurai.</li>
+        <li>S3: 14 panah benar tersedia (lihat data <code>WEB_OK</code> di kode). Rantai 4 tingkat, misalnya padi → belalang → katak → ular.</li>
+        <li>S4: lebah–bunga mutualisme; anggrek–pohon komensalisme; benalu parasitisme; kucing–tikus predasi; padi–gulma kompetisi; <i>Penicillium</i>–bakteri antibiosis.</li>
+        <li>M1: 2.000; 200; 20 kJ. M3: N = 250 ekor; kepadatan 2 ekor/m².</li>
+      </ul>
+      <p class="small muted" style="margin-top:6px">Aturan 10% adalah nilai rata-rata. Efisiensi transfer energi di alam umumnya berkisar 5–20%, jadi diskusikan ini dengan siswa.</p>
+    </div>
+    <div>
+      <h3>Rubrik produk ekosfer (skor 1–4)</h3>
+      <div class="tbl" style="margin-top:6px">
+        <table>
+          <thead><tr><th>Aspek</th><th>4</th><th>2</th></tr></thead>
+          <tbody>
+            <tr><td>Dasar ilmiah desain</td><td>Komposisi dijelaskan dengan siklus O₂–CO₂ dan aliran energi</td><td>Alasan desain umum, tanpa konsep</td></tr>
+            <tr><td>Data pengamatan</td><td>14 hari lengkap, konsisten, dianalisis</td><td>Data bolong, tanpa analisis</td></tr>
+            <tr><td>Perbaikan desain</td><td>Perbaikan berdasarkan data</td><td>Perbaikan tanpa kaitan data</td></tr>
+            <tr><td>Komunikasi visual</td><td>Sketsa berlabel lengkap, poster akurat</td><td>Sketsa tanpa label, pesan poster keliru</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="small muted">Keselamatan: gunakan hewan kecil secukupnya dan kembalikan ke habitat asal setelah proyek selesai. Jangan memakai spesies invasif, misalnya keong mas, dan jangan melepasnya ke perairan lain.</p>
+  </div>
+</details>
+
+</main>
+<footer class="small muted">LKPD Ekosfer Botol · Biologi Fase E · Jawaban hanya tersimpan di perangkat ini.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const KEY="lkpd-ekosfer-v1";
+let S={f:{},edges:[],log:null,sketch:null};
+try{const raw=localStorage.getItem(KEY); if(raw){const o=JSON.parse(raw); S=Object.assign(S,o);}}catch(e){}
+let tSave=null;
+function save(){clearTimeout(tSave);tSave=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} updateAll();},250);}
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- data ---------- */
+const CLS=[["Cahaya matahari","A"],["Air kolam","A"],["Cacing tanah","B"],["Pasir","A"],["Lumut","B"],["Suhu","A"],["Bakteri pengurai","B"],["Batu kerikil","A"],["Ikan kecil","B"],["Oksigen terlarut","A"],["Fitoplankton","B"],["Siput air","B"]];
+const ROLES=["Produsen","Konsumen I","Konsumen II","Konsumen III","Pengurai"];
+const ROLE_ITEMS=[["Fitoplankton","Produsen"],["Zooplankton","Konsumen I"],["Ikan teri","Konsumen II"],["Ikan tongkol","Konsumen III"],["Bakteri","Pengurai"],["Jamur","Pengurai"]];
+const INTS=["Mutualisme","Komensalisme","Parasitisme","Predasi","Kompetisi","Antibiosis"];
+const INT_ITEMS=[["Lebah mengisap nektar sambil membantu penyerbukan bunga","Mutualisme"],["Anggrek menempel di batang pohon mangga untuk mendapat cahaya","Komensalisme"],["Benalu mengambil air dan mineral dari pohon jambu","Parasitisme"],["Kucing menangkap dan memakan tikus","Predasi"],["Padi dan gulma memperebutkan unsur hara yang sama","Kompetisi"],["Jamur Penicillium mengeluarkan zat yang menghambat bakteri","Antibiosis"]];
+const NODES={padi:["Padi",200,335,1],rumput:["Rumput",400,335,1],belalang:["Belalang",110,240],tikus:["Tikus",300,240],pipit:["Pipit",490,240],katak:["Katak",150,145],ular:["Ular",420,145],elang:["Elang",300,52]};
+const WEB_OK=["padi>belalang","rumput>belalang","padi>tikus","padi>pipit","rumput>pipit","belalang>pipit","belalang>katak","tikus>ular","katak>ular","pipit>ular","tikus>elang","ular>elang","pipit>elang","katak>elang"];
+const LIKERT=["Saya dapat membedakan komponen biotik dan abiotik","Saya dapat menyusun jaring makanan dan menjelaskan aliran energi","Saya dapat membaca grafik dinamika populasi","Saya dapat menghitung transfer energi dan ukuran populasi","Saya berkontribusi aktif dalam kelompok"];
+const DEMO_LOG=[{h:0,suhu:27,lux:1800,jernih:4,siput:5,cat:"Air sedikit keruh setelah dirakit",demo:1},{h:1,suhu:27.5,lux:1950,jernih:4,siput:5,cat:"Gelembung di daun Hydrilla",demo:1},{h:2,suhu:28,lux:2100,jernih:5,siput:5,cat:"Air mulai jernih",demo:1}];
+if(!Array.isArray(S.log)) S.log=DEMO_LOG.map(r=>Object.assign({},r));
+
+/* ---------- build S1 ---------- */
+$("#clsList").innerHTML=CLS.map((it,i)=>`<div class="cls-row" id="clsrow_${i}"><span>${it[0]}</span><span class="seg" style="--c:var(--s)">
+<input type="radio" name="cls_${i}" id="cls_${i}_B" data-p value="B"><label for="cls_${i}_B" title="Biotik">B</label>
+<input type="radio" name="cls_${i}" id="cls_${i}_A" data-p value="A"><label for="cls_${i}_A" title="Abiotik">A</label></span></div>`).join("");
+function selectHTML(id,opts){return `<select id="${id}" data-p><option value="">— pilih —</option>${opts.map(o=>`<option>${o}</option>`).join("")}</select>`;}
+$("#roleList").innerHTML=ROLE_ITEMS.map((it,i)=>`<div class="pair" id="rolerow_${i}"><label for="role_${i}">${it[0]}</label>${selectHTML("role_"+i,ROLES)}</div>`).join("");
+$("#intList").innerHTML=INT_ITEMS.map((it,i)=>`<div class="pair" id="introw_${i}"><label for="int_${i}">${it[0]}</label>${selectHTML("int_"+i,INTS)}</div>`).join("");
+$("#likert").innerHTML=LIKERT.map((t,i)=>`<div class="lk"><span>${t}</span><span class="seg" style="--c:var(--moss)">${[1,2,3,4].map(v=>`<input type="radio" name="lk_${i}" id="lk_${i}_${v}" data-p value="${v}"><label for="lk_${i}_${v}">${["Belum","Mulai","Bisa","Mahir"][v-1]}</label>`).join("")}</span></div>`).join("");
+
+/* ---------- generic persistence ---------- */
+function restore(){
+  $$("[data-p]").forEach(el=>{
+    const v=S.f[el.id]; if(v===undefined) return;
+    if(el.type==="checkbox"||el.type==="radio") el.checked=!!v; else el.value=v;
+  });
+}
+function bind(){
+  document.addEventListener("input",onField); document.addEventListener("change",onField);
+}
+function onField(e){
+  const el=e.target; if(!el.hasAttribute||!el.hasAttribute("data-p")) return;
+  if(el.type==="radio"){ $$(`input[name="${el.name}"]`).forEach(r=>S.f[r.id]=r.checked); }
+  else if(el.type==="checkbox") S.f[el.id]=el.checked; else S.f[el.id]=el.value;
+  if(el.closest("#teknologi")) runSim();
+  if(el.closest("#rekayasa")) planCheck();
+  save();
+}
+restore(); bind();
+
+/* ---------- checkers ---------- */
+const radioVal=n=>{const r=document.querySelector(`input[name="${n}"]:checked`);return r?r.value:"";};
+const num=id=>{const v=parseFloat(String($("#"+id).value).replace(",","."));return isNaN(v)?null:v;};
+const graded={};
+function grade(kind,show){
+  let ok=0,tot=0,msg="",cls="";
+  if(kind==="cls"){
+    tot=CLS.length; let blank=0;
+    CLS.forEach((it,i)=>{const v=radioVal("cls_"+i); const row=$("#clsrow_"+i); if(show) row.classList.remove("ok","bad"); if(!v){blank++;return;} if(v===it[1]){ok++; if(show)row.classList.add("ok");} else if(show)row.classList.add("bad");});
+    msg= ok===tot?"Semua benar. Komponen biotik adalah makhluk hidup; abiotik adalah faktor fisik dan kimia lingkungan.": `${ok} dari ${tot} benar${blank?`, ${blank} belum dijawab`:""}. Ingat: suhu dan oksigen terlarut adalah kondisi lingkungan, bukan makhluk hidup.`;
+  }
+  if(kind==="role"||kind==="int"){
+    const items=kind==="role"?ROLE_ITEMS:INT_ITEMS; tot=items.length;
+    items.forEach((it,i)=>{const v=$(`#${kind}_${i}`).value,row=$(`#${kind}row_${i}`); if(show) row.classList.remove("ok","bad"); if(!v) return; if(v===it[1]){ok++; if(show)row.classList.add("ok");} else if(show)row.classList.add("bad");});
+    msg= ok===tot?"Semua benar.":`${ok} dari ${tot} benar. `+(kind==="role"?"Hitung tingkat konsumen dari posisinya dalam rantai: pemakan produsen adalah konsumen I.":"Bedakan: komensalisme menguntungkan satu pihak tanpa merugikan pihak lain, parasitisme merugikan inangnya.");
+  }
+  if(kind==="web"){
+    const good=S.edges.filter(e=>WEB_OK.includes(e)).length, bad=S.edges.length-good;
+    const rev=S.edges.filter(e=>WEB_OK.includes(e.split(">").reverse().join(">"))).length;
+    tot=8; ok=Math.min(good,8);
+    msg=`${good} panah benar, ${bad} keliru.`+(rev?` ${rev} panah arahnya terbalik: panah menunjuk ke pemakan karena energi mengalir dari yang dimakan ke pemakan.`:"")+(good>=8&&!bad?" Jaring makananmu memenuhi syarat.":good<8?` Butuh minimal 8 panah benar.`:"");
+    if(show) drawWeb(true);
+  }
+  if(kind==="pyr"){
+    tot=3; const want=[2000,200,20]; ["m1_k1","m1_k2","m1_k3"].forEach((id,i)=>{const v=num(id); if(v!==null&&Math.abs(v-want[i])<0.5) ok++;});
+    msg= ok===3?"Benar. Setiap naik satu tingkat, energi tinggal sekitar sepersepuluhnya.":`${ok} dari 3 benar. Kalikan energi tingkat sebelumnya dengan 0,1.`;
+  }
+  if(kind==="lp"){
+    tot=2; const n=num("m3_n"),d=num("m3_d"); if(n!==null&&Math.abs(n-250)<0.5) ok++; if(d!==null&&Math.abs(d-2)<0.01) ok++;
+    msg= ok===2?"Benar. N = (40 × 50) ÷ 8 = 250 ekor, kepadatan 250 ÷ 125 = 2 ekor/m².":`${ok} dari 2 benar. Masukkan M = 40, C = 50, R = 8 ke rumus, lalu bagi N dengan luas kolam.`;
+  }
+  cls= ok===tot?"ok":(ok>0?"warn":"bad");
+  graded[kind]={ok,tot};
+  if(show){const fb=$("#fb-"+kind); fb.className="fb "+cls; fb.textContent=msg; S.f["_checked_"+kind]=true; save();}
+  return {ok,tot};
+}
+$$("[data-check]").forEach(b=>b.addEventListener("click",()=>grade(b.dataset.check,true)));
+
+/* ---------- food web ---------- */
+const svg=$("#web"); let sel=null; const R=30;
+function drawWeb(showState){
+  const shown=showState||S.f._checked_web;
+  let h=`<defs>${["muted","ok","bad"].map(k=>`<marker id="ar-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--${k})"/></marker>`).join("")}</defs>`;
+  h+=`<text class="trophic" x="8" y="340">PRODUSEN</text><text class="trophic" x="8" y="245">KONSUMEN I</text><text class="trophic" x="8" y="150">KONSUMEN II–III</text><text class="trophic" x="8" y="20">PUNCAK</text>`;
+  S.edges.forEach(e=>{const [a,b]=e.split(">"),A=NODES[a],B=NODES[b]; if(!A||!B) return;
+    const dx=B[1]-A[1],dy=B[2]-A[2],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+    const st=shown?(WEB_OK.includes(e)?"ok":"bad"):"muted";
+    h+=`<line class="edge ${st==="muted"?"":st}" x1="${A[1]+ux*R}" y1="${A[2]+uy*R}" x2="${B[1]-ux*(R+3)}" y2="${B[2]-uy*(R+3)}" marker-end="url(#ar-${st})"/>`;});
+  Object.entries(NODES).forEach(([k,n])=>{h+=`<g class="node${n[3]?" prod":""}${sel===k?" sel":""}" data-k="${k}" tabindex="0" role="button" aria-label="${n[0]}${sel===k?", terpilih":""}"><circle cx="${n[1]}" cy="${n[2]}" r="${R}"/><text x="${n[1]}" y="${n[2]}">${n[0]}</text></g>`;});
+  svg.innerHTML=h;
+  $("#edgeList").innerHTML=S.edges.map((e,i)=>{const [a,b]=e.split(">"); const st=shown?(WEB_OK.includes(e)?" ok":" bad"):""; return `<span class="chip${st}">${NODES[a][0]} → ${NODES[b][0]}<button type="button" data-del="${i}" aria-label="Hapus panah ${NODES[a][0]} ke ${NODES[b][0]}">×</button></span>`;}).join("")||`<span class="small muted">Belum ada panah.</span>`;
+}
+function pick(k){
+  if(!sel){sel=k; $("#webHint").textContent=`${NODES[k][0]} dipilih. Sekarang ketuk pemakannya.`;}
+  else if(sel===k){sel=null; $("#webHint").textContent="Pilihan dibatalkan. Pilih organisme yang dimakan.";}
+  else{const e=sel+">"+k,i=S.edges.indexOf(e); if(i>=0)S.edges.splice(i,1); else S.edges.push(e);
+    $("#webHint").textContent=(i>=0?"Panah dihapus: ":"Panah ditambahkan: ")+`${NODES[sel][0]} → ${NODES[k][0]}. Pilih organisme yang dimakan.`; sel=null; S.f._checked_web=false; $("#fb-web").textContent=""; save();}
+  drawWeb(); const g=svg.querySelector(`[data-k="${k}"]`); if(g) g.focus({preventScroll:true});
+}
+svg.addEventListener("click",e=>{const g=e.target.closest(".node"); if(g) pick(g.dataset.k);});
+svg.addEventListener("keydown",e=>{const g=e.target.closest(".node"); if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();pick(g.dataset.k);}});
+$("#edgeList").addEventListener("click",e=>{const b=e.target.closest("[data-del]"); if(!b) return; S.edges.splice(+b.dataset.del,1); S.f._checked_web=false; $("#fb-web").textContent=""; drawWeb(); save();});
+$("#webClear").addEventListener("click",()=>{S.edges=[];sel=null;S.f._checked_web=false;$("#fb-web").textContent="";drawWeb();save();});
+drawWeb();
+
+/* ---------- line chart ---------- */
+function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p;}
+function lineChart(cv,series,opt){
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight; if(!w) return;
+  cv.width=w*dpr; cv.height=h*dpr; const c=cv.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,w,h);
+  const pl=46,pr=12,pt=12,pb=30, W=w-pl-pr, H=h-pt-pb;
+  const xs=series.flatMap(s=>s.data.map(d=>d[0])), ys=series.flatMap(s=>s.data.map(d=>d[1]));
+  const ink=css("--muted"),line=css("--line"),font=getComputedStyle(document.body).fontFamily;
+  c.font=`11px ${css("--f-mono")||"monospace"}`; c.fillStyle=ink; c.strokeStyle=line; c.lineWidth=1;
+  if(!xs.length){c.fillStyle=ink;c.font=`14px ${font}`;c.textAlign="center";c.fillText(opt.empty||"Belum ada data",w/2,h/2);return;}
+  const x0=opt.xmin??Math.min(...xs), x1=Math.max(opt.xmax??0,...xs, x0+1), ymax=niceMax(Math.max(...ys,opt.ymin||0)*1.05);
+  const X=v=>pl+(v-x0)/(x1-x0)*W, Y=v=>pt+H-(v/ymax)*H;
+  c.textAlign="right"; c.textBaseline="middle";
+  for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v); c.beginPath(); c.moveTo(pl,y); c.lineTo(pl+W,y); c.stroke(); c.fillText(+v.toFixed(v<10?1:0),pl-6,y);}
+  c.textAlign="center"; c.textBaseline="top"; const steps=Math.min(10,Math.round(x1-x0)); const st=(x1-x0)/steps;
+  for(let i=0;i<=steps;i++){const v=x0+st*i; c.fillText(Math.round(v),X(v),pt+H+6);}
+  c.textAlign="right"; c.fillText(opt.xlabel||"",pl+W,pt+H+18);
+  series.forEach(s=>{c.strokeStyle=css(s.color); c.lineWidth=2.25; c.lineJoin="round"; c.beginPath(); s.data.forEach((d,i)=>i?c.lineTo(X(d[0]),Y(d[1])):c.moveTo(X(d[0]),Y(d[1]))); c.stroke();
+    if(s.dots){c.fillStyle=css(s.color); s.data.forEach(d=>{c.beginPath();c.arc(X(d[0]),Y(d[1]),3.5,0,7);c.fill();});}});
+}
+
+/* ---------- simulation ---------- */
+const SIMDEF={pa:0.6,pb:0.025,pc:0.5,pe:0.4};
+function runSim(){
+  const a=+$("#pa").value,b=+$("#pb").value,c=+$("#pc").value,e=+$("#pe").value,K=$("#pk").checked?150:Infinity,hunt=$("#ph").checked;
+  ["pa","pb","pc","pe"].forEach(id=>$("#"+id+"_v").textContent=(+$("#"+id).value).toFixed(id==="pb"?4:2));
+  const f=(x,y)=>[a*x*(1-x/K)-b*x*y, e*b*x*y-c*y];
+  let x=80,y=15,t=0; const dt=0.05,T=60,P=[[0,x]],Q=[[0,y]]; let hunted=false;
+  for(let i=1;i<=T/dt;i++){
+    const k1=f(x,y),k2=f(x+dt/2*k1[0],y+dt/2*k1[1]),k3=f(x+dt/2*k2[0],y+dt/2*k2[1]),k4=f(x+dt*k3[0],y+dt*k3[1]);
+    x=Math.max(0,x+dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0])); y=Math.max(0,y+dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1])); t=i*dt;
+    if(hunt&&!hunted&&t>=20){y*=0.2;hunted=true;}
+    if(i%4===0){P.push([t,x]);Q.push([t,y]);}
+  }
+  lineChart($("#simChart"),[{data:P,color:"--s"},{data:Q,color:"--a"}],{xmin:0,xmax:60,xlabel:"hari"});
+  const px=Math.max(...P.map(d=>d[1])),py=Math.max(...Q.map(d=>d[1]));
+  $("#simStat").textContent=`puncak siput ${px.toFixed(0)} · puncak ikan ${py.toFixed(0)}`;
+}
+$("#simReset").addEventListener("click",()=>{Object.entries(SIMDEF).forEach(([k,v])=>{$("#"+k).value=v;S.f[k]=String(v);}); $("#pk").checked=false;$("#ph").checked=false;S.f.pk=false;S.f.ph=false; runSim(); save();});
+
+/* ---------- plan check ---------- */
+function planCheck(){
+  const w=[]; const vol=num("e_vol"),hw=num("e_hewan"),tb=num("e_tumb"),ud=num("e_udara");
+  if(vol&&hw&&vol/hw<250) w.push(`Setiap hewan hanya mendapat ${(vol/hw).toFixed(0)} mL air. Hewan yang terlalu padat cepat menghabiskan oksigen.`);
+  if(hw&&tb!==null&&tb<hw) w.push("Jumlah tumbuhan lebih sedikit dari hewan. Siapa yang akan menghasilkan oksigen dan makanan?");
+  if(ud!==null&&ud<10&&$("#e_udara").value!=="") w.push("Ruang udara sangat sempit. Pertukaran gas di permukaan air akan terbatas.");
+  const lok=($("#e_lokasi").value||"").toLowerCase(); if(/matahari langsung|terik|jemur/.test(lok)&&!/tidak|bukan|hindari/.test(lok)) w.push("Matahari langsung dapat membuat air di botol tertutup terlalu panas.");
+  $("#planWarn").textContent=w.length?"Pertimbangkan: "+w.join(" "):"";
+}
+planCheck();
+
+/* ---------- pyramid ---------- */
+function drawPyr(){
+  const lv=[["Konsumen III",num("m1_k3"),"--a"],["Konsumen II",num("m1_k2"),"--t"],["Konsumen I",num("m1_k1"),"--e"],["Produsen",20000,"--s"]];
+  $("#pyr").innerHTML=lv.map(l=>{const v=l[1]; const pct=v&&v>0?Math.max(18,Math.min(100,(Math.log10(v)/Math.log10(20000))*100)):18;
+    return `<div style="width:${pct}%;background:var(${l[2]})">${l[0]}: ${v===null?"?":v.toLocaleString("id-ID")} kJ</div>`;}).join("")+`<span class="small muted">Lebar batang memakai skala logaritmik</span>`;
+}
+
+/* ---------- logbook ---------- */
+function renderLog(){
+  $("#logBody").innerHTML=S.log.map((r,i)=>`<tr>
+<td><input type="number" aria-label="Hari" data-i="${i}" data-k="h" value="${r.h??""}" style="width:64px"> ${r.demo?'<span class="tag">contoh</span>':""}</td>
+<td><input type="number" step="0.1" aria-label="Suhu" data-i="${i}" data-k="suhu" value="${r.suhu??""}" style="width:80px"></td>
+<td><input type="number" aria-label="Cahaya" data-i="${i}" data-k="lux" value="${r.lux??""}" style="width:90px"></td>
+<td><input type="number" min="1" max="5" aria-label="Kejernihan" data-i="${i}" data-k="jernih" value="${r.jernih??""}" style="width:64px"></td>
+<td><input type="number" min="0" aria-label="Siput hidup" data-i="${i}" data-k="siput" value="${r.siput??""}" style="width:64px"></td>
+<td><input type="text" aria-label="Catatan" data-i="${i}" data-k="cat" value="${esc(r.cat??"")}" style="min-width:160px"></td>
+<td><button type="button" class="ghost mini" data-rm="${i}" aria-label="Hapus baris hari ${r.h}">×</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">Belum ada data. Tekan “Tambah hari” untuk mulai mencatat hari ke-0.</td></tr>`;
+  $("#logDemo").hidden=!S.log.some(r=>r.demo);
+  drawLog();
+}
+function drawLog(){
+  const k=$("#logVar").value; const d=S.log.filter(r=>r.h!==""&&r.h!=null&&r[k]!==""&&r[k]!=null&&!isNaN(+r[k])).map(r=>[+r.h,+r[k]]).sort((a,b)=>a[0]-b[0]);
+  lineChart($("#logChart"),d.length?[{data:d,color:"--m",dots:true}]:[],{xmin:0,xmax:14,xlabel:"hari ke-",empty:"Isi tabel untuk melihat grafik"});
+}
+$("#logBody").addEventListener("input",e=>{const el=e.target; if(el.dataset.i===undefined) return; const r=S.log[+el.dataset.i]; r[el.dataset.k]=el.dataset.k==="cat"?el.value:(el.value===""?"":+el.value); if(r.demo) delete r.demo; drawLog(); save();});
+$("#logBody").addEventListener("click",e=>{const b=e.target.closest("[data-rm]"); if(!b) return; S.log.splice(+b.dataset.rm,1); renderLog(); save();});
+$("#logAdd").addEventListener("click",()=>{const last=S.log.length?Math.max(...S.log.map(r=>+r.h||0))+1:0; S.log.push({h:last,suhu:"",lux:"",jernih:"",siput:"",cat:""}); renderLog(); save(); const ins=$$("#logBody tr:last-child input"); if(ins[1]) ins[1].focus();});
+$("#logDemo").addEventListener("click",()=>{S.log=S.log.filter(r=>!r.demo); renderLog(); save();});
+$("#logVar").addEventListener("change",drawLog);
+
+/* ---------- sketch ---------- */
+const cv=$("#sketch"),cx=cv.getContext("2d"); const COLORS=[["#1B2A22","Hitam"],["#2E6A4E","Hijau"],["#23678A","Biru"],["#8B5A17","Cokelat"],["#C7A23A","Kuning"],["#A1365A","Merah"]];
+let pen={c:COLORS[0][0],w:6,er:false},drawing=false,hist=[];
+$("#swatches").innerHTML=COLORS.map((c,i)=>`<button type="button" class="sw" style="background:${c[0]}" data-c="${c[0]}" aria-label="${c[1]}" aria-pressed="${i===0}"></button>`).join("")+
+ `<button type="button" class="ghost mini" data-er="1" aria-pressed="false">Penghapus</button><label class="small" style="display:flex;gap:6px;align-items:center">Tebal<input type="range" id="skW" min="2" max="24" value="6" style="width:100px"></label>`;
+function bgFill(){cx.fillStyle="#FBFCFA";cx.fillRect(0,0,cv.width,cv.height);}
+bgFill();
+if(S.sketch){const im=new Image(); im.onload=()=>{cx.drawImage(im,0,0);}; im.src=S.sketch;}
+$("#swatches").addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; $$("#swatches button").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); if(b.dataset.er){pen.er=true;} else {pen.er=false;pen.c=b.dataset.c;}});
+$("#swatches").addEventListener("input",e=>{if(e.target.id==="skW") pen.w=+e.target.value;});
+function pos(e){const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];}
+cv.addEventListener("pointerdown",e=>{drawing=true; cv.setPointerCapture(e.pointerId); try{hist.push(cx.getImageData(0,0,cv.width,cv.height)); if(hist.length>20)hist.shift();}catch(_){} const [x,y]=pos(e); cx.beginPath(); cx.moveTo(x,y); cx.lineTo(x+0.1,y+0.1); stroke();});
+cv.addEventListener("pointermove",e=>{if(!drawing) return; const [x,y]=pos(e); cx.lineTo(x,y); stroke();});
+function stroke(){cx.strokeStyle=pen.er?"#FBFCFA":pen.c; cx.lineWidth=pen.er?pen.w*3:pen.w; cx.lineCap="round"; cx.lineJoin="round"; cx.stroke();}
+function endDraw(){if(!drawing) return; drawing=false; storeSketch();}
+cv.addEventListener("pointerup",endDraw); cv.addEventListener("pointercancel",endDraw);
+function storeSketch(){try{S.sketch=cv.toDataURL("image/jpeg",0.7);}catch(_){} $("#skStat").textContent="Sketsa tersimpan"; save();}
+$("#skUndo").addEventListener("click",()=>{const im=hist.pop(); if(im){cx.putImageData(im,0,0); storeSketch();}});
+$("#skClear").addEventListener("click",()=>{try{hist.push(cx.getImageData(0,0,cv.width,cv.height));}catch(_){} bgFill(); S.sketch=null; $("#skStat").textContent="Kanvas dibersihkan. Tekan Urungkan untuk mengembalikan."; save();});
+
+/* ---------- progress, score, summary ---------- */
+function filled(sec){const els=$$(`#${sec} [data-p]`).filter(el=>el.type==="text"||el.tagName==="TEXTAREA"); if(!els.length) return 0; return els.filter(el=>el.value.trim()).length/els.length;}
+function updateAll(){
+  ["cls","role","web","int","pyr","lp"].forEach(k=>grade(k,false));
+  drawPyr();
+  const secs=["sains","teknologi","rekayasa","seni","matematika","refleksi"]; let sum=0;
+  secs.forEach(s=>{const p=filled(s); sum+=p; const a=document.querySelector(`.step[data-sec="${s}"]`); if(a) a.classList.toggle("done",p>=0.6);});
+  $("#progbar").style.width=(sum/secs.length*100).toFixed(0)+"%";
+  const names={cls:"S1 Biotik/abiotik",role:"S2 Peran",web:"S3 Jaring makanan",int:"S4 Interaksi",pyr:"M1 Piramida",lp:"M3 Populasi"};
+  let to=0,tt=0; const cells=Object.keys(names).map(k=>{const g=graded[k];to+=g.ok;tt+=g.tot;return `<div><span class="label">${names[k]}</span><b class="mono">${g.ok}/${g.tot}</b></div>`;});
+  $("#score").innerHTML=`<div style="border-color:var(--moss)"><span class="label">Total</span><b class="mono">${Math.round(to/tt*100)}</b></div>`+cells.join("");
+  $("#summary").textContent=buildSummary(names,to,tt);
+}
+function v(id){const el=$("#"+id);return el?(el.value||"").trim()||"-":"-";}
+function checks(ids){return ids.filter(i=>$("#"+i)&&$("#"+i).checked).map(i=>$("#"+i).closest("label").textContent.trim()).join(", ")||"-";}
+function buildSummary(names,to,tt){
+  const L=[]; const p=(k,x)=>L.push(`${k}: ${x}`);
+  L.push("LKPD EKOSFER BOTOL — Biologi Fase E"); L.push("=".repeat(38));
+  p("Nama",v("nama")); p("Kelas",v("kelas")); p("Kelompok",v("kelompok")); p("Anggota",v("anggota")); L.push("");
+  p("Dugaan awal",v("dugaan")); L.push("");
+  L.push(`SKOR OTOMATIS: ${Math.round(to/tt*100)}  (`+Object.keys(names).map(k=>`${names[k]} ${graded[k].ok}/${graded[k].tot}`).join("; ")+")");
+  L.push(""); L.push("[S] SAINS");
+  p("Panah jaring makanan",S.edges.map(e=>e.split(">").map(k=>NODES[k][0]).join("→")+(WEB_OK.includes(e)?"":" (keliru)")).join(", ")||"-");
+  p("Rantai 4 tingkat",v("s3_rantai")); p("Jika ular punah",v("s3_ular"));
+  L.push(""); L.push("[T] TEKNOLOGI");
+  p("Parameter simulasi",`kelahiran ${v("pa")}, pemangsaan ${v("pb")}, kematian ${v("pc")}, efisiensi ${v("pe")}, K ${$("#pk").checked?"ya":"tidak"}, panen ${$("#ph").checked?"ya":"tidak"}`);
+  p("Puncak ikan setelah siput",v("t1_q1")); p("Efek daya dukung",v("t1_q2")); p("Penangkapan berlebih",v("t1_q3")); p("Keterbatasan model",v("t1_q4"));
+  p("Alat ukur",checks(["t2_termo","t2_lux","t2_kamera","t2_ph","t2_sheet","t2_timer"])); p("Cara pemakaian",v("t2_cara"));
+  L.push(""); L.push("[E] REKAYASA");
+  p("Masalah",v("e_tanya")); p("Bahan",checks(["m_botol","m_air","m_pasir","m_lumpur","m_hydrilla","m_siput","m_ikan","m_daun"])); p("Ide desain",v("e_ide"));
+  p("Rencana",`volume ${v("e_vol")} mL, tumbuhan ${v("e_tumb")}, hewan ${v("e_hewan")}, ruang udara ${v("e_udara")}%`); p("Lokasi",v("e_lokasi"));
+  p("Catatan merakit",v("e_buat")); p("Kriteria terpenuhi",checks(["k_tutup","k_hijau","k_hidup","k_bau"])); p("Kriteria gagal & sebab",v("e_gagal")); p("Perbaikan",v("e_perbaiki"));
+  L.push(""); L.push("[A] SENI");
+  p("Sketsa",S.sketch?"dibuat (kirim tangkapan layar)":"belum"); p("Slogan",v("a_slogan")); p("Sasaran",v("a_sasaran")); p("Pesan ilmiah",v("a_pesan")); p("Visual",v("a_visual"));
+  L.push(""); L.push("[M] MATEMATIKA");
+  p("Piramida energi (K1/K2/K3)",`${v("m1_k1")} / ${v("m1_k2")} / ${v("m1_k3")} kJ`); p("Energi yang hilang",v("m1_hilang"));
+  L.push("Logbook (hari | suhu | lux | jernih | siput | catatan):");
+  S.log.filter(r=>!r.demo).forEach(r=>L.push(`  ${r.h} | ${r.suhu} | ${r.lux} | ${r.jernih} | ${r.siput} | ${r.cat||""}`));
+  if(!S.log.some(r=>!r.demo)) L.push("  (belum ada data sendiri)");
+  p("Pola data",v("m2_pola")); p("Perkiraan populasi N",v("m3_n")); p("Kepadatan",v("m3_d")); p("Asumsi",v("m3_asumsi"));
+  L.push(""); L.push("REFLEKSI");
+  p("Kesimpulan",v("r_simpul")); p("Aksi nyata",v("r_aksi"));
+  LIKERT.forEach((t,i)=>{const r=radioVal("lk_"+i); p("  "+t, r?["Belum","Mulai","Bisa","Mahir"][r-1]:"-");});
+  return L.join("\n");
+}
+$("#copySum").addEventListener("click",()=>{
+  const txt=$("#summary").textContent;
+  const fallback=()=>{const r=document.createRange(); r.selectNodeContents($("#summary")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copyStat").textContent="Teks sudah diblok. Tekan Ctrl+C atau salin manual.";};
+  try{navigator.clipboard.writeText(txt).then(()=>$("#copyStat").textContent="Ringkasan tersalin.",fallback);}catch(e){fallback();}
+});
+$("#resetAll").addEventListener("click",()=>{$("#resetConfirm").hidden=false;});
+$("#resetNo").addEventListener("click",()=>{$("#resetConfirm").hidden=true;});
+$("#resetYes").addEventListener("click",()=>{try{localStorage.removeItem(KEY);}catch(e){} location.reload();});
+
+/* ---------- init ---------- */
+$$("[data-check]").forEach(b=>{if(S.f["_checked_"+b.dataset.check]) grade(b.dataset.check,true);});
+renderLog(); runSim(); updateAll();
+let rz; addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{runSim();drawLog();},150);});
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{runSim();drawLog();});}catch(e){}
+new MutationObserver(()=>{runSim();drawLog();}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+})();
+</script>
+</body>
+</html>
